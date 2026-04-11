@@ -4,12 +4,37 @@ class AIResponseGenerator {
         this.apiKey = ''; // Coloque sua API key aqui (opcional)
         this.useMock = true; // Usa respostas mockadas por padrão
         this.apiEndpoint = ''; // Endpoint da API (opcional)
+        this.userCountry = null; // País detectado do usuário
+        this.userLanguage = 'pt-BR'; // Idioma padrão
     }
 
     // Configurar API key
     setAPIKey(key) {
         this.apiKey = key;
         this.useMock = false;
+    }
+
+    // Detectar IP e país do usuário para configuração de idioma
+    async detectUserLocation() {
+        try {
+            // Usar API gratuita de geolocalização (ip-api.com)
+            const response = await fetch('http://ip-api.com/json/');
+            const data = await response.json();
+            
+            if (data.countryCode) {
+                this.userCountry = data.countryCode;
+                // Se não for Brasil, usar inglês
+                if (data.countryCode !== 'BR') {
+                    this.userLanguage = 'en-US';
+                } else {
+                    this.userLanguage = 'pt-BR';
+                }
+                console.log('País detectado:', data.countryCode, 'Idioma configurado:', this.userLanguage);
+            }
+        } catch (error) {
+            console.error('Erro ao detectar localização:', error);
+            // Mantém idioma padrão (pt-BR) em caso de erro
+        }
     }
 
     // Gerar resposta baseada na pergunta do usuário
@@ -62,7 +87,7 @@ Gere uma resposta misteriosa e enigmática que combine com a resposta secreta.`;
 
     // Gerar resposta mockada (sem API)
     generateMockResponse(pergunta, respostaSecreta) {
-        const responses = [
+        const responsesPT = [
             `Os espíritos sussurram: "${respostaSecreta}"`,
             `Das sombras emerge a resposta: ${respostaSecreta}`,
             `O além revela: ${respostaSecreta}`,
@@ -82,19 +107,39 @@ Gere uma resposta misteriosa e enigmática que combine com a resposta secreta.`;
             `Nem sabe o que te espera essa noite, a resposta é ${respostaSecreta}`
         ];
 
+        const responsesEN = [
+            `The spirits whisper: "${respostaSecreta}"`,
+            `From the shadows emerges the answer: ${respostaSecreta}`,
+            `The beyond reveals: ${respostaSecreta}`,
+            `The spirits confirm: ${respostaSecreta}`,
+            `From the other side: ${respostaSecreta}`,
+            `Ancient mysteries reveal: ${respostaSecreta}`,
+            `Silly game, the answer is: ${respostaSecreta}`,
+            `I am behind you and I see: ${respostaSecreta}`,
+            `Do not waste my time mortal, the answer is ${respostaSecreta}`,
+            `You should not play with what you do not know, behold: ${respostaSecreta}`,
+            `You are not worthy of our attention, but here it is: ${respostaSecreta}`,
+            `Your spirit is weak, the answer is: ${respostaSecreta}`,
+            `Address me with more respect, the answer is ${respostaSecreta}`,
+            `You are not being polite, but I answer: ${respostaSecreta}`,
+            `I am not your slave, but I say: ${respostaSecreta}`,
+            `You do not know what awaits you tonight, the answer is ${respostaSecreta}`
+        ];
+
+        const responses = this.userLanguage === 'en-US' ? responsesEN : responsesPT;
         const randomIndex = Math.floor(Math.random() * responses.length);
         return responses[randomIndex];
     }
 
     // Respostas de erro (quando pergunta é inválida)
     generateErrorResponse() {
-        const errors = [
+        const errorsPT = [
             "Os espíritos não respondem a perguntas vazias",
             "Sua mente está muito agitada",
             "Os espíritos exigem respeito em suas perguntas",
             "O véu está muito espesso hoje",
             "Você não está pronto para ouvir a resposta",
-            "Não me incomode inseto",            
+            "Não me incomode inseto",
             // Frases curtas de deboche/assustador
             "Tolo mortal",
             "Não nos faça rir",
@@ -115,6 +160,34 @@ Gere uma resposta misteriosa e enigmática que combine com a resposta secreta.`;
             "Nada escapa dos nossos olhos"
         ];
 
+        const errorsEN = [
+            "The spirits do not answer empty questions",
+            "Your mind is too agitated",
+            "The spirits demand respect in your questions",
+            "The veil is too thick today",
+            "You are not ready to hear the answer",
+            "Do not bother me insect",
+            // Short mocking/scary phrases
+            "Foolish mortal",
+            "Do not make us laugh",
+            "Your fear feeds us",
+            "We are watching",
+            "You do not know who you speak to",
+            "Be careful what you wish for",
+            "Your soul will be mine",
+            "We see everything",
+            "You should not be here",
+            "Time is running out",
+            "Darkness approaches",
+            "Your presence disturbs us",
+            "You are too curious",
+            "Some secrets must remain",
+            "We are not a game",
+            "You will regret this",
+            "Nothing escapes our eyes"
+        ];
+
+        const errors = this.userLanguage === 'en-US' ? errorsEN : errorsPT;
         return errors[Math.floor(Math.random() * errors.length)];
     }
 
@@ -129,27 +202,47 @@ Gere uma resposta misteriosa e enigmática que combine com a resposta secreta.`;
         window.speechSynthesis.cancel();
 
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'pt-BR';
+        utterance.lang = this.userLanguage;
         utterance.rate = 0.7; // Velocidade mais lenta para efeito misterioso
         utterance.pitch = 0.5; // Tom mais grave para efeito sobrenatural/bruxa
         utterance.volume = 1.0; // Volume máximo para voz
 
-        // Tentar usar uma voz portuguesa feminina (para efeito de bruxa)
+        // Tentar usar uma voz feminina do idioma detectado (para efeito de bruxa)
         const voices = window.speechSynthesis.getVoices();
 
-        // Prioridade 1: Voz feminina portuguesa
-        let selectedVoice = voices.find(voice =>
-            voice.lang.includes('pt-BR') || voice.lang.includes('pt')
-        );
+        // Selecionar voz baseado no idioma detectado
+        let selectedVoice;
 
-        // Prioridade 2: Voz feminina em geral (para efeito de bruxa)
-        if (!selectedVoice) {
-            selectedVoice = voices.find(voice => voice.name.toLowerCase().includes('female') || voice.name.toLowerCase().includes('woman'));
-        }
+        if (this.userLanguage === 'en-US') {
+            // Prioridade 1: Voz feminina em inglês
+            selectedVoice = voices.find(voice =>
+                voice.lang.includes('en-US') || voice.lang.includes('en-GB') || voice.lang.includes('en')
+            );
 
-        // Prioridade 3: Qualquer voz portuguesa
-        if (!selectedVoice) {
-            selectedVoice = voices.find(voice => voice.lang.includes('pt-BR') || voice.lang.includes('pt'));
+            // Prioridade 2: Voz feminina em geral
+            if (!selectedVoice) {
+                selectedVoice = voices.find(voice => voice.name.toLowerCase().includes('female') || voice.name.toLowerCase().includes('woman'));
+            }
+
+            // Prioridade 3: Qualquer voz em inglês
+            if (!selectedVoice) {
+                selectedVoice = voices.find(voice => voice.lang.includes('en-US') || voice.lang.includes('en-GB') || voice.lang.includes('en'));
+            }
+        } else {
+            // Prioridade 1: Voz feminina portuguesa
+            selectedVoice = voices.find(voice =>
+                voice.lang.includes('pt-BR') || voice.lang.includes('pt')
+            );
+
+            // Prioridade 2: Voz feminina em geral (para efeito de bruxa)
+            if (!selectedVoice) {
+                selectedVoice = voices.find(voice => voice.name.toLowerCase().includes('female') || voice.name.toLowerCase().includes('woman'));
+            }
+
+            // Prioridade 3: Qualquer voz portuguesa
+            if (!selectedVoice) {
+                selectedVoice = voices.find(voice => voice.lang.includes('pt-BR') || voice.lang.includes('pt'));
+            }
         }
 
         // Prioridade 4: Voz mais grave disponível (para efeito de bruxa)
@@ -228,6 +321,9 @@ Gere uma resposta misteriosa e enigmática que combine com a resposta secreta.`;
 
 // Instância global
 window.aiResponseGenerator = new AIResponseGenerator();
+
+// Detectar localização do usuário ao carregar
+window.aiResponseGenerator.detectUserLocation();
 
 // Carregar vozes quando disponíveis
 if ('speechSynthesis' in window) {

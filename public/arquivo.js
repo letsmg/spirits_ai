@@ -192,36 +192,36 @@ function tocarMusica() {
     if (!voices || !voices.src || voices.src.includes('about:blank')) {
         console.error('Elemento de áudio não encontrado ou sem fonte válida');
         btnMusica.innerHTML = '<i class="bi bi-music-note-beamed"></i> Áudio não disponível';
-        btnMusica.classList.remove('btn-danger');
+        btnMusica.classList.remove('btn-info');
         btnMusica.classList.add('btn-secondary');
         btnMusica.disabled = true;
         return;
     }
-    
+
     // Adicionar tratamento de erro
     voices.addEventListener('error', function(e) {
         console.error('Erro ao carregar áudio:', e);
         btnMusica.innerHTML = '<i class="bi bi-music-note-beamed"></i> Erro no áudio';
-        btnMusica.classList.remove('btn-danger', 'btn-success');
+        btnMusica.classList.remove('btn-info', 'btn-success');
         btnMusica.classList.add('btn-warning');
         btnMusica.disabled = true;
     });
-    
+
     if (voices.paused) {
         voices.play().catch(function(error) {
             console.error('Erro ao tocar áudio:', error);
-            btnMusica.innerHTML = '<i class="bi bi-music-note-beamed"></i> Erro ao tocar';
-            btnMusica.classList.remove('btn-danger');
+            btnMusica.innerHTML = '<i class="bi bi-play-circle-fill"></i> Erro ao tocar';
+            btnMusica.classList.remove('btn-info');
             btnMusica.classList.add('btn-warning');
         });
-        btnMusica.innerHTML = '<i class="bi bi-pause-circle"></i> Pausar Música';
-        btnMusica.classList.remove('btn-danger');
-        btnMusica.classList.add('btn-success');
+        btnMusica.innerHTML = '<i class="bi bi-pause-circle-fill"></i> Pausar Música';
+        btnMusica.classList.remove('btn-info');
+        btnMusica.classList.add('btn-info');
     } else {
         voices.pause();
-        btnMusica.innerHTML = '<i class="bi bi-music-note-beamed"></i> Toque a música para ambientar melhor com os espíritos';
-        btnMusica.classList.remove('btn-success');
-        btnMusica.classList.add('btn-danger');
+        btnMusica.innerHTML = '<i class="bi bi-play-circle-fill"></i> Toque a música para ambientar melhor com os espíritos';
+        btnMusica.classList.remove('btn-info');
+        btnMusica.classList.add('btn-info');
     }
 }
 
