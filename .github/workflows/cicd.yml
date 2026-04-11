@@ -1,0 +1,55 @@
+name: Deploy Jogo dos Espíritos com IA
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create deploy package
+        run: |
+          # Copia apenas os arquivos necessários para produção
+          mkdir deploy
+          cp -r public/* deploy/
+          cp .htaccess deploy/ 2>/dev/null || echo ".htaccess não encontrado"
+          
+          # Cria o zip para deploy
+          cd deploy
+          zip -r ../deploy.zip .
+          cd ..
+
+      - name: Configure SSH
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy to server
+        run: |
+          scp -o StrictHostKeyChecking=no deploy.zip ubuntu@147.15.80.52:/tmp/
+
+          ssh -o StrictHostKeyChecking=no ubuntu@147.15.80.52 << 'EOF'
+            set -e
+            cd /var/www/jogo
+            
+            echo "Cleaning old files..."
+            sudo find . -maxdepth 1 ! -name '.env' ! -name '.' -exec rm -rf {} +
+            
+            echo "Extracting new files..."
+            sudo unzip -o /tmp/deploy.zip -d .
+            sudo rm /tmp/deploy.zip
+
+            echo "Setting permissions..."
+            sudo chown -R www-data:www-data /var/www/jogo
+            sudo chmod -R 755 .
+            
+            echo "Deploy completed successfully!"
+          EOF
+
+      - name: Cleanup
+        if: always()
+        run: rm -rf deploy deploy.zip
