@@ -7,7 +7,7 @@ Disallow: /css/
 Disallow: /audio/
 
 # Sitemap
-Sitemap: https://yourdomain.com/sitemap.xml
+Sitemap: https://spirit-echo.hierarca.com/sitemap.xml
 
 # Crawl delay
 Crawl-delay: 1

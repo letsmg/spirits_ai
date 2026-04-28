@@ -13,12 +13,10 @@ jobs:
 
       - name: 🤐 Criar Pacote de Deploy
         run: |
-          # Criamos uma pasta temporária para organizar o que será enviado
+          # Organiza apenas os arquivos necessários
           mkdir build-tmp
-          # Copia apenas o conteúdo da pasta public (assumindo que o projeto é estático/simples)
           cp -r public/* build-tmp/
-          # Copia o .htaccess se ele existir na raiz
-          [ -f .htaccess ] && cp .htaccess build-tmp/ || echo "Sem .htaccess para copiar"
+          [ -f .htaccess ] && cp .htaccess build-tmp/ || echo "Sem .htaccess"
 
           cd build-tmp
           zip -r ../deploy-spirit-echo.zip .
@@ -32,35 +30,26 @@ jobs:
 
       - name: 🚀 Executar Deploy no Servidor
         run: |
-          # Envia o pacote para o diretório temporário do servidor
           scp -o StrictHostKeyChecking=no deploy-spirit-echo.zip ubuntu@${{ secrets.SERVER_IP }}:/tmp/
 
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.SERVER_IP }} << 'EOF'
             set -e
 
-            # Definição de caminhos (Variáveis com UNDERSCORE _)
+            # Definição do caminho único
             BASE_DIR="/var/www/spirit-echo"
-            SHARED_DIR="/var/www/spirit-echo-shared"
 
-            # 1. Garante que as pastas existam
+            # 1. Garante que a pasta de destino existe
             sudo mkdir -p ${BASE_DIR}
-            sudo mkdir -p ${SHARED_DIR}
 
-            # 2. Descompacta os arquivos diretamente na pasta de destino
-            # O parâmetro -o força a substituição dos arquivos antigos
+            # 2. Descompacta e sobrescreve os arquivos antigos (-o)
             sudo unzip -o /tmp/deploy-spirit-echo.zip -d ${BASE_DIR}
 
-            # 3. Linkar arquivos persistentes (ex: .env) se necessário
-            if [ -f "${SHARED_DIR}/.env" ]; then
-                sudo ln -sfn ${SHARED_DIR}/.env ${BASE_DIR}/.env
-            fi
-
-            # 4. Ajustar permissões para o servidor web (Nginx/Apache)
+            # 3. Ajustar permissões para o Nginx (www-data)
             sudo chown -R www-data:www-data ${BASE_DIR}
             sudo chmod -R 755 ${BASE_DIR}
 
-            # 5. Limpeza de arquivos temporários no servidor
+            # 4. Limpeza do arquivo temporário
             sudo rm /tmp/deploy-spirit-echo.zip
             
-            echo "✅ Deploy Direto Finalizado com Sucesso!"
+            echo "✅ Deploy Direto Finalizado!"
           EOF
