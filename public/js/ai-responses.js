@@ -17,8 +17,8 @@ class AIResponseGenerator {
     // Detectar IP e país do usuário para configuração de idioma
     async detectUserLocation() {
         try {
-            // Usar API gratuita de geolocalização (ipwho.is) - HTTPS gratuito
-            const response = await fetch('https://ipwho.is/');
+            // Usar API gratuita de geolocalização (ipapi.co) - HTTPS gratuito, 150 req/dia
+            const response = await fetch('https://ipapi.co/json/');
             const data = await response.json();
 
             if (data.country_code) {
