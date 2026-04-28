@@ -17,19 +17,19 @@ class AIResponseGenerator {
     // Detectar IP e país do usuário para configuração de idioma
     async detectUserLocation() {
         try {
-            // Usar API gratuita de geolocalização (ip-api.com)
-            const response = await fetch('https://ip-api.com/json/');
+            // Usar API gratuita de geolocalização (ipwho.is) - HTTPS gratuito
+            const response = await fetch('https://ipwho.is/');
             const data = await response.json();
-            
-            if (data.countryCode) {
-                this.userCountry = data.countryCode;
+
+            if (data.country_code) {
+                this.userCountry = data.country_code;
                 // Se não for Brasil, usar inglês
-                if (data.countryCode !== 'BR') {
+                if (data.country_code !== 'BR') {
                     this.userLanguage = 'en-US';
                 } else {
                     this.userLanguage = 'pt-BR';
                 }
-                console.log('País detectado:', data.countryCode, 'Idioma configurado:', this.userLanguage);
+                console.log('País detectado:', data.country_code, 'Idioma configurado:', this.userLanguage);
             }
         } catch (error) {
             console.error('Erro ao detectar localização:', error);
